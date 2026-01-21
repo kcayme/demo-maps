@@ -9,11 +9,13 @@ import {
 import { useEffect, useMemo, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
 import { LatLng, type DragEndEvent, Marker as LeafletMarker } from 'leaflet';
-
 import type { Pin } from '../types/map';
 import { reverseGeocoding } from '../api/location';
 import SidePanel from '../components/SidePanel';
 import PinList from '../components/PinList';
+import L from 'leaflet';
+
+L.Icon.Default.imagePath = 'images/';
 
 type MapClickHandlerProps = {
     onAdd: (latlng: LatLng) => void;
