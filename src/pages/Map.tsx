@@ -107,7 +107,8 @@ const Map = () => {
     const handleSelectPin = (pin: Pin) => setSelectedPinId(pin.id);
 
     const handleDraggedPin = async (pinId: string, latlng: LatLng) => {
-        // perform refetch
+        console.log('fetching location of dragged pin...');
+
         setPins((prev) =>
             prev.map((pin) =>
                 pin.id === pinId
@@ -160,8 +161,6 @@ const Map = () => {
                         eventHandlers={{
                             dragend: (e: DragEndEvent) => {
                                 const marker = e.target as LeafletMarker;
-                                console.log('DRAGGED');
-                                console.log(marker.getLatLng());
                                 handleDraggedPin(pin.id, marker.getLatLng());
                             },
                         }}
