@@ -45,8 +45,8 @@ const PinList = ({ pins, selectedPinId, onSelect, onRemove }: PinListProps) => (
                                 </div>
                                 {pin.name}
                             </div>
-                            <div className="text-xs flex gap-x-3">
-                                <MapPinIcon className="w-4 h-4" />
+                            <div className="text-xs flex gap-x-2 items-center">
+                                <MapPinIcon className="w-5 h-5" />
                                 {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}
                             </div>
                         </>
