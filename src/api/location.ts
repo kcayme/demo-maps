@@ -1,12 +1,11 @@
-import type { LatLng } from 'leaflet'
-import AxiosClient from '../lib/axios'
+import type { LatLng } from 'leaflet';
+import AxiosClient from '../lib/axios';
 
 export type Place = {
-    lat: string
-    lon: string
-    displayName: string
-    icon: string
-}
+    lat: string;
+    lon: string;
+    displayName: string;
+};
 
 export const reverseGeocoding = async (
     latlng: LatLng
@@ -21,18 +20,17 @@ export const reverseGeocoding = async (
             headers: {
                 'User-Agent': 'MyReactLeafletApp/1.0',
             },
-        })
+        });
 
-        if (!resp.data) return null
+        if (!resp.data) return null;
 
         return {
             lat: resp.data.lat,
             lon: resp.data.lon,
             displayName: resp.data.display_name,
-            icon: resp.data.icon,
-        }
+        };
     } catch (e) {
-        console.error('Failed to fetch data', e)
-        return null
+        console.error('Failed to fetch data', e);
+        return null;
     }
-}
+};

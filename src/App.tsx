@@ -1,8 +1,8 @@
-import './App.css'
-import Map from './pages/Map'
+import './App.css';
+import Map from './pages/Map';
 
 function App() {
-    return <Map />
+    return <Map />;
 }
 
-export default App
+export default App;

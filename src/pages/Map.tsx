@@ -1,63 +1,116 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
     MapContainer,
     TileLayer,
     Marker,
     Popup,
     useMapEvents,
-} from 'react-leaflet'
-import { useState } from 'react'
-import 'leaflet/dist/leaflet.css'
-import L, { LatLng } from 'leaflet'
+    useMap,
+} from 'react-leaflet';
+import { useEffect, useMemo, useState } from 'react';
+import 'leaflet/dist/leaflet.css';
+import { LatLng } from 'leaflet';
 
-// Fix default marker icon issue with Leaflet + React
-import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
-import markerIcon from 'leaflet/dist/images/marker-icon.png'
-import markerShadow from 'leaflet/dist/images/marker-shadow.png'
-import type { Pin } from '../types/map'
-
-// delete L.Icon.Default.prototype.L.Icon.Default.mergeOptions({
-//     iconRetinaUrl: markerIcon2x,
-//     iconUrl: markerIcon,
-//     shadowUrl: markerShadow,
-// })
+import type { Pin } from '../types/map';
+import { reverseGeocoding } from '../api/location';
+import SidePanel from '../components/SidePanel';
+import PinList from '../components/List';
 
 type MapClickHandlerProps = {
-    onAdd: (latlng: LatLng) => void
-}
+    onAdd: (latlng: LatLng) => void;
+};
+
+type JumpToPinProps = {
+    pin: Pin | null;
+};
+
+const STORE_KEY = 'map_pins';
 
 const MapClickHandler = ({ onAdd }: MapClickHandlerProps) => {
     useMapEvents({
         click(e) {
-            onAdd(e.latlng)
+            onAdd(e.latlng);
         },
-    })
-    return null
-}
+    });
+    return null;
+};
+
+const JumpToPin = ({ pin }: JumpToPinProps) => {
+    const map = useMap();
+
+    useEffect(() => {
+        if (!pin) return;
+
+        map.flyTo([pin.lat, pin.lng], Math.max(map.getZoom(), 13), {
+            duration: 0.75,
+        });
+    }, [pin, map]);
+
+    return null;
+};
 
 const Map = () => {
-    const [pins, setPins] = useState<Pin[]>([])
+    const [pins, setPins] = useState<Pin[]>(() => {
+        try {
+            const stored = localStorage.getItem(STORE_KEY);
+            return stored ? (JSON.parse(stored) as Pin[]) : [];
+        } catch {
+            return [];
+        }
+    });
 
-    const handleAddPin = (latlng: LatLng) => {
-        setPins((prev) => [
-            ...prev,
-            {
-                id: crypto.randomUUID(),
-                lat: latlng.lat,
-                lng: latlng.lng,
-            },
-        ])
-    }
+    const [selectedPinId, setSelectedPinId] = useState<string | null>(null);
 
-    const handleRemovePin = (id: any) => {
-        setPins((prev) => prev.filter((p) => p.id !== id))
-    }
+    useEffect(() => {
+        localStorage.setItem(STORE_KEY, JSON.stringify(pins));
+    }, [pins]);
+
+    const selectedPin = useMemo(
+        () => pins.find((p) => p.id === selectedPinId) ?? null,
+        [pins, selectedPinId]
+    );
+
+    const handleAddPin = async (latlng: LatLng) => {
+        const initPin: Pin = {
+            id: crypto.randomUUID(),
+            lat: latlng.lat,
+            lng: latlng.lng,
+            name: 'N/A',
+            hasFetched: false,
+        };
+
+        setPins((prev) => [...prev, initPin]);
+
+        const pinData = await reverseGeocoding(latlng);
+
+        setPins((prev) =>
+            prev.map((pin) =>
+                pin.id === initPin.id
+                    ? {
+                          ...pin,
+                          name: pinData?.displayName ?? pin.name,
+                          hasFetched: true,
+                      }
+                    : pin
+            )
+        );
+    };
+
+    const handleRemovePin = (id: string) => {
+        setPins((prev) => prev.filter((p) => p.id !== id));
+    };
+
+    const handleClearPins = () => {
+        setPins([]);
+        localStorage.removeItem(STORE_KEY);
+    };
+
+    const handleSelectPin = (pin: Pin) => setSelectedPinId(pin.id);
 
     return (
         <div className="flex h-screen w-screen bg-green-500 p-10">
             {/* Map */}
             <MapContainer
-                center={[12.9797, 121.774]}
+                center={[15.9797, 120.774]}
                 zoom={13}
                 className="w-screen h-full absolute inset-0 z-10"
             >
@@ -67,6 +120,7 @@ const Map = () => {
                 />
 
                 <MapClickHandler onAdd={handleAddPin} />
+                <JumpToPin pin={selectedPin} />
 
                 {pins.map((pin) => (
                     <Marker key={pin.id} position={[pin.lat, pin.lng]}>
@@ -79,47 +133,16 @@ const Map = () => {
             </MapContainer>
 
             {/* Side Panel */}
-            <aside className="relative z-50 left-0 h-full rounded-lg shadow-lg w-40 md:w-80 p-4 bg-white transition-transform duration-300 translate-x-0">
-                <div>
-                    <div className="flex justify-between items-center mb-3">
-                        <h2 className="text-lg text-black font-semibold">
-                            Pinned Locations
-                        </h2>
-                        <button className="text-lg text-gray-400">Clear</button>
-                    </div>
-                    {pins.length === 0 && (
-                        <p className="text-sm text-center text-gray-500">
-                            Click on the map to add a pin
-                        </p>
-                    )}
-                </div>
-                <ul className="space-y-2 text-gray-500">
-                    {pins.map((pin, idx) => (
-                        <li
-                            key={pin.id}
-                            className="border-b flex justify-between border-gray-300 p-2"
-                        >
-                            <div>
-                                <div className="font-medium">
-                                    {' '}
-                                    Pin {idx + 1}
-                                </div>
-                                <div className="text-xs text-gray-600">
-                                    {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}
-                                </div>
-                            </div>
-                            <button
-                                className="mt-1 text-sm text-red-600"
-                                onClick={() => handleRemovePin(pin.id)}
-                            >
-                                Remove
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            </aside>
+            <SidePanel pins={pins} onClear={handleClearPins}>
+                <PinList
+                    pins={pins}
+                    selectedPinId={selectedPinId}
+                    onSelect={handleSelectPin}
+                    onRemove={handleRemovePin}
+                />
+            </SidePanel>
         </div>
-    )
-}
+    );
+};
 
-export default Map
+export default Map;
