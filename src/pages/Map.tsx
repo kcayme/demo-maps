@@ -13,7 +13,7 @@ import { LatLng } from 'leaflet';
 import type { Pin } from '../types/map';
 import { reverseGeocoding } from '../api/location';
 import SidePanel from '../components/SidePanel';
-import PinList from '../components/List';
+import PinList from '../components/PinList';
 
 type MapClickHandlerProps = {
     onAdd: (latlng: LatLng) => void;
