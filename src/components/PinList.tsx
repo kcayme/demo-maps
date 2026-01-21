@@ -39,15 +39,21 @@ const PinList = ({ pins, selectedPinId, onSelect, onRemove }: PinListProps) => (
 
                     {pin.hasFetched ? (
                         <>
-                            <div className="text-sm flex items-center gap-x-2 hover:underline">
-                                <div className="w-9 h-9 flex items-center">
+                            <div className="text-sm flex items-center gap-x-3 hover:underline">
+                                <div className="w-5 h-5 flex items-center shrink-0">
                                     <MapIcon className="w-5 h-5" />
                                 </div>
-                                {pin.name}
+                                <span className="leading-tight">
+                                    {pin.name}
+                                </span>
                             </div>
-                            <div className="text-xs flex gap-x-2 items-center">
-                                <MapPinIcon className="w-5 h-5" />
-                                {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}
+                            <div className="text-xs flex gap-x-3 items-center shrink-0">
+                                <div className="flex">
+                                    <MapPinIcon className="w-5 h-5" />
+                                </div>
+                                <span>
+                                    {pin.lat.toFixed(4)}, {pin.lng.toFixed(4)}
+                                </span>
                             </div>
                         </>
                     ) : (
