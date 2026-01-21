@@ -17,9 +17,6 @@ export const reverseGeocoding = async (
                 lon: latlng.lng,
                 format: 'json',
             },
-            headers: {
-                'User-Agent': 'MyReactLeafletApp/1.0',
-            },
         });
 
         if (!resp.data) return null;

@@ -2,7 +2,6 @@ import axios from 'axios';
 
 const OPENSTREET_API_URL = import.meta.env.VITE_OPENSTREET_API_URL;
 
-console.log(OPENSTREET_API_URL);
 const AxiosClient = axios.create({
     baseURL: OPENSTREET_API_URL,
     headers: {

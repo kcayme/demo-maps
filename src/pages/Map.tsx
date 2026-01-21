@@ -8,7 +8,7 @@ import {
 } from 'react-leaflet';
 import { useEffect, useMemo, useState } from 'react';
 import 'leaflet/dist/leaflet.css';
-import { LatLng } from 'leaflet';
+import { LatLng, type DragEndEvent, Marker as LeafletMarker } from 'leaflet';
 
 import type { Pin } from '../types/map';
 import { reverseGeocoding } from '../api/location';
@@ -106,6 +106,36 @@ const Map = () => {
 
     const handleSelectPin = (pin: Pin) => setSelectedPinId(pin.id);
 
+    const handleDraggedPin = async (pinId: string, latlng: LatLng) => {
+        // perform refetch
+        setPins((prev) =>
+            prev.map((pin) =>
+                pin.id === pinId
+                    ? {
+                          ...pin,
+                          lat: latlng.lat,
+                          lng: latlng.lng,
+                          hasFetched: false,
+                      }
+                    : pin
+            )
+        );
+
+        const updatedData = await reverseGeocoding(latlng);
+
+        setPins((prev) =>
+            prev.map((pin) =>
+                pin.id === pinId
+                    ? {
+                          ...pin,
+                          name: updatedData?.displayName ?? pin.name,
+                          hasFetched: true,
+                      }
+                    : pin
+            )
+        );
+    };
+
     return (
         <div className="flex h-screen w-screen bg-green-500 p-10">
             {/* Map */}
@@ -123,7 +153,19 @@ const Map = () => {
                 <JumpToPin pin={selectedPin} />
 
                 {pins.map((pin) => (
-                    <Marker key={pin.id} position={[pin.lat, pin.lng]}>
+                    <Marker
+                        key={pin.id}
+                        position={[pin.lat, pin.lng]}
+                        draggable={true}
+                        eventHandlers={{
+                            dragend: (e: DragEndEvent) => {
+                                const marker = e.target as LeafletMarker;
+                                console.log('DRAGGED');
+                                console.log(marker.getLatLng());
+                                handleDraggedPin(pin.id, marker.getLatLng());
+                            },
+                        }}
+                    >
                         <Popup>
                             Lat: {pin.lat.toFixed(5)} <br />
                             Lng: {pin.lng.toFixed(5)}
